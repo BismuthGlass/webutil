@@ -8,13 +8,25 @@ import (
 	"text/template"
 )
 
-func LoadTemplates(root string) (*template.Template, error) {
+func LoadTemplates(root string, allowed_suffix []string) (*template.Template, error) {
 	var tmpl *template.Template
 	err := filepath.WalkDir(root, func (path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if !d.IsDir() {
+			// Check if the file has any of the required suffixes
+			allowed := false
+			for _, s := range allowed_suffix {
+				if strings.HasSuffix(d.Name(), s) {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				return nil
+			}
+
 			p, err := filepath.Rel(root, path)
 			if err != nil {
 				return err
